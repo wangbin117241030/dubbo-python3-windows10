@@ -56,7 +56,7 @@ class DubboClient(object):
         self.__interface = interface
         self.__version = version
         self.__dubbo_version = dubbo_version
-        self.__group=group
+        self.__group = group
         self.__zk_register = zk_register
         self.__host = host
 

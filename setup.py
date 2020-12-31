@@ -22,10 +22,10 @@ from setuptools import setup, find_packages
 
 setup(
     name='python-dubbo',
-    version='0.0.5',
+    version='1.0.0',
     url='https://github.com/RitterHou/python-dubbo',
-    author='hourui',
-    author_email='hourui@qianmi.com',
+    author='wangbin',
+    author_email='wangbin117241030@sina.com',
     description='Python Dubbo Client.',
     license='Apache License 2.0',
     packages=find_packages(exclude=['tests', 'tools']),
@@ -33,8 +33,8 @@ setup(
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Natural Language :: Chinese (Simplified)',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
+        'Operating System :: Windows 10',
+        'Programming Language :: Python :: 3.7',
     ],
     install_requires=[
         'kazoo==2.4.0'
