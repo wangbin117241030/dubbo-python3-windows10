@@ -2,6 +2,8 @@
 
 _Python Dubbo Client._
 
+基于python 3.7.7 64bit版本、支持windows10 系统、对接dubbo 2.7.7
+
 ## Installation
 
     pip install python-dubbo
