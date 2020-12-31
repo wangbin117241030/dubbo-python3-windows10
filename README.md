@@ -6,7 +6,7 @@ _Python Dubbo Client._
 
 ## Installation
 
-    pip install python-dubbo
+    使用setup.py文件安装
 
 ## Usage
 
