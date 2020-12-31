@@ -17,7 +17,7 @@ from dubbo.client import DubboClient, ZkRegister
 
 # 支持从Zk中获取服务的provider，支持根据provider的权重选择主机
 zk = ZkRegister('127.0.0.1:2181')
-dubbo_cli = DubboClient('com.qianmi.pc.api.GoodsQueryProvider', zk_register=zk)
+dubbo_cli = DubboClient('com.qianmi.pc.api.GoodsQueryProvider', dubbo_version='2.0.2', zk_register=zk, group="23456")
 
 # 支持不使用Zk，直接连接指定的远程主机
 dubbo_cli = DubboClient('com.qianmi.pc.api.GoodsQueryProvider', host='127.0.0.1:20880')
@@ -57,7 +57,7 @@ spu_query_request['pageSize'] = 2000
 
 # 创建consumer并执行查询操作
 zk = ZkRegister('172.21.4.71:2181')
-spu_query_provider = DubboClient('com.qianmi.pc.item.api.spu.SpuQueryProvider', zk_register=zk)
+spu_query_provider = DubboClient('com.qianmi.pc.item.api.spu.SpuQueryProvider', dubbo_version='2.0.2', zk_register=zk, group="23456")
 result = spu_query_provider.call('query', spu_query_request)
 ```
 
