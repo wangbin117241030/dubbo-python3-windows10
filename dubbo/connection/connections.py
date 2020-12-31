@@ -217,17 +217,24 @@ class BaseConnectionPool(object):
             return
 
         try:
+            # 从dubbo的java代码抠出来 DecodeableRpcResult.java
+            # RESPONSE_NULL_VALUE = 2;
+            # RESPONSE_VALUE = 1;
+            # RESPONSE_WITH_EXCEPTION = 0;
+            # RESPONSE_NULL_VALUE_WITH_ATTACHMENTS = 5;
+            # RESPONSE_VALUE_WITH_ATTACHMENTS = 4;
+            # RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS = 3;
             res = Response(body)
             flag = res.read_int()
             if flag == 2:  # 响应的值为NULL
                 self.results[invoke_id] = None
-            elif flag == 1:  # 正常的响应值
+            elif flag == 1 or flag == 5 or flag == 4:  # 正常的响应值
                 result = res.read_next()
                 self.results[invoke_id] = result
-            elif flag == 0:  # 异常的响应值
+            elif flag == 0 or flag == 3:  # 异常的响应值
                 self.results[invoke_id] = self._parse_error(res)
             else:
-                raise DubboResponseException("Unknown result flag, expect '0' '1' '2', get " + flag)
+                raise DubboResponseException("Unknown result flag, expect '0' '1' '2', get {}".format(flag))
         except Exception as e:
             logger.exception(e)
             self.results[invoke_id] = e
@@ -304,6 +311,9 @@ class SelectConnectionPool(BaseConnectionPool):
 
     def _read_from_server(self):
         while 1:
+            if len(self._connection_pool.values()) == 0:
+                # logger.exception("服务端尚未就绪")
+                continue
             try:
                 conns = self._connection_pool.values()
                 readable, writeable, exceptional = select.select(conns, [], [], self.select_timeout)

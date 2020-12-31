@@ -22,7 +22,7 @@ import logging
 import threading
 import time
 import random
-from urllib import quote
+from urllib.parse import quote
 
 from kazoo.client import KazooClient
 from kazoo.protocol.states import KazooState
@@ -40,7 +40,7 @@ class DubboClient(object):
     用于实现dubbo调用的客户端
     """
 
-    def __init__(self, interface, version='1.0.0', dubbo_version='2.4.10', zk_register=None, host=None):
+    def __init__(self, interface, version='1.0.0', dubbo_version='2.4.10', group=None, zk_register=None, host=None):
         """
         :param interface: 接口名，例如：com.qianmi.pc.es.api.EsProductQueryProvider
         :param version: 接口的版本号，例如：1.0.0，默认为1.0.0
@@ -56,7 +56,7 @@ class DubboClient(object):
         self.__interface = interface
         self.__version = version
         self.__dubbo_version = dubbo_version
-
+        self.__group=group
         self.__zk_register = zk_register
         self.__host = host
 
@@ -91,9 +91,10 @@ class DubboClient(object):
         request_param = {
             'dubbo_version': self.__dubbo_version,
             'version': self.__version,
+            'group': self.__group,
             'path': self.__interface,
             'method': method,
-            'arguments': args
+            'arguments': args,
         }
 
         logger.debug('Start request, host={}, params={}'.format(host, request_param))
@@ -186,11 +187,13 @@ class ZkRegister(object):
         :return:
         """
         providers = self.zk.get_children(path, watch=self._watch_children)
-        providers = filter(lambda provider: provider['scheme'] == 'dubbo', map(parse_url, providers))
+        # 2020/1/16 yanchunhuo 修改
+        providers = list(filter(lambda provider: provider['scheme'] == 'dubbo', map(parse_url, providers)))
         if not providers:
             raise RegisterException('no providers for interface {}'.format(interface))
         self._register_consumer(providers)
-        self.hosts[interface] = map(lambda provider: provider['host'], providers)
+        # 2020/1/16 yanchunhuo 修改
+        self.hosts[interface] = list(map(lambda provider: provider['host'], providers))
 
     def _get_configurators_from_zk(self, interface):
         """
@@ -217,12 +220,14 @@ class ZkRegister(object):
         interface = path.split('/')[2]
 
         providers = self.zk.get_children(path, watch=self._watch_children)
-        providers = filter(lambda provider: provider['scheme'] == 'dubbo', map(parse_url, providers))
+        # 2020/1/16 yanchunhuo 修改
+        providers = list(filter(lambda provider: provider['scheme'] == 'dubbo', map(parse_url, providers)))
         if not providers:
             logger.debug('no providers for interface {}'.format(interface))
             self.hosts[interface] = []
             return
-        self.hosts[interface] = map(lambda provider: provider['host'], providers)
+        # 2020/1/16 yanchunhuo 修改
+        self.hosts[interface] = list(map(lambda provider: provider['host'], providers))
         logger.debug('{} providers: {}'.format(interface, self.hosts[interface]))
 
     def _watch_configurators(self, event):
@@ -303,7 +308,7 @@ class ZkRegister(object):
             hosts_weight.append(int(weights.get(host, 100)))
 
         hit = random.randint(0, sum(hosts_weight) - 1)
-        for i in xrange(len(hosts)):
+        for i in range(len(hosts)):
             if hit <= sum(hosts_weight[:i + 1]):
                 return hosts[i]
 

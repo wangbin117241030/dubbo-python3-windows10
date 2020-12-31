@@ -23,7 +23,8 @@ import socket
 import struct
 import threading
 from sys import platform, maxsize
-from urlparse import urlparse, unquote, parse_qsl
+from urllib.parse import urlparse, unquote, parse_qsl
+# from urlparse import urlparse, unquote, parse_qsl
 
 import logging
 

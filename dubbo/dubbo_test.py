@@ -22,11 +22,18 @@ import json
 import logging
 import threading
 import unittest
+import sys
+import os
+# sys.path.append(os.path.abspath("./db_utils"))
 
-from dubbo.codec.encoder import Object
-from dubbo.common.loggers import init_log
-from dubbo.common.exceptions import DubboException
-from dubbo.client import DubboClient, ZkRegister
+from codec.encoder import Object
+from common.loggers import init_log
+from common.exceptions import DubboException
+from client import DubboClient, ZkRegister
+
+
+from urllib.parse import urlparse,unquote,parse_qsl
+
 
 logger = logging.getLogger('python-dubbo')
 
@@ -39,15 +46,15 @@ class TestDubbo(unittest.TestCase):
     def setUp(self):
         init_log()  # 初始化日志配置，调用端需要自己配置日志属性
 
-        zk = ZkRegister('127.0.0.1:2181')
-        self.dubbo = DubboClient('me.hourui.echo.provider.Echo', zk_register=zk)
+        # zk = ZkRegister('192.168.33.171:2181')
+        # self.dubbo = DubboClient('com.gjzq.qsvr.api.quote.QuoteQueryService', zk_register=zk)
         # self.dubbo = DubboClient('me.hourui.echo.provider.Echo', host='127.0.0.1:20880')
 
     def tearDown(self):
         # Do something to clear the test environment here.
         pass
 
-    # @unittest.skip('skip base test')
+    @unittest.skip('skip base test')
     def test(self):
         dubbo = self.dubbo
 
@@ -97,6 +104,7 @@ class TestDubbo(unittest.TestCase):
         log.debug('1111')
         log.info('22222')
 
+    @unittest.skip('skip base test')
     def _run_num(self):
         dubbo = self.dubbo
 
@@ -127,17 +135,18 @@ class TestDubbo(unittest.TestCase):
         self.assertEquals(-1000, dubbo.call('echo7', -1000))
         self.assertEquals(-100000, dubbo.call('echo7', -100000))
 
-    # @unittest.skip('skip performance test')
+    @unittest.skip('skip performance test')
     def test_multi_threading(self):
         for i in range(10):
             thread = threading.Thread(target=self._run_num)
             thread.start()
 
-    # @unittest.skip('skip performance test')
+    @unittest.skip('skip performance test')
     def test_performance(self):
         for i in range(10):
             self.dubbo.call('echo18')
 
+    @unittest.skip('skip performance test')
     def test_auto_rule(self):
         dubbo_cli = DubboClient('com.qianmi.common.autorule.api.WarehouseProvider', host='172.21.36.82:20880')
         delivery_man_query = Object('com.qianmi.common.autorule.api.request.warehouse.DeliveryManQueryRequest')
@@ -227,6 +236,7 @@ class TestDubbo(unittest.TestCase):
         # result = dubbo.call('echo23')
         pretty_print(result)
 
+    @unittest.skip('skip performance test')
     def test_array(self):
         location1 = Object('me.hourui.echo.bean.Location')
         location1['province'] = '江苏省'
@@ -250,6 +260,7 @@ class TestDubbo(unittest.TestCase):
         dubbo_cli = DubboClient('me.hourui.echo.provider.Echo', host='127.0.0.1:20880')
         dubbo_cli.call('test4', [['你好', '我好'], [2, 3, 3, 3], array])
 
+    @unittest.skip('skip performance test')
     def test_pc(self):
         zk = ZkRegister('172.21.4.71:2181')
         spu_query_provider = DubboClient('com.qianmi.pc.item.api.spu.SpuQueryProvider', zk_register=zk)
@@ -293,6 +304,7 @@ class TestDubbo(unittest.TestCase):
         batch_spu_request = spu_query_provider.call('listByIds', spu_ids_request)
         pretty_print(batch_spu_request)
 
+    @unittest.skip('skip performance test')
     def test_pc_es_center(self):
         zk = ZkRegister('172.19.71.7:2181')
         dubbo_cli = DubboClient('com.qianmi.pc.es.api.EsGoodsQueryProvider', zk_register=zk)
@@ -320,8 +332,37 @@ class TestDubbo(unittest.TestCase):
         pretty_print(result)
 
 
+    def test_auto_rule(self):
+
+        zk_cli = ZkRegister('192.168.33.171:2181')
+        dubbo_cli = DubboClient('com.gjzq.qsvr.api.quote.QuoteQueryService', zk_register=zk_cli,dubbo_version='2.7.7')
+        # order_query = Object('com.qianmi.common.autorule.api.request.order.OrderListByCustomerServiceIdRequest')
+        # order_query['userId'] = 'A1035527'
+        # order_query['customerServiceId'] = 'E132802'
+        result = dubbo_cli.call('querySzQuote')
+        pretty_print(result)
+
+def parse_url(url_str):
+    """
+    把url字符串解析为适合于操作的对象
+    :param url_str:
+    :return:
+    """
+    url = urlparse(unquote(url_str))
+    fields = dict(parse_qsl(url.query))
+    result = {
+        'scheme': url.scheme,
+        'host': url.netloc,
+        'hostname': url.hostname,
+        'port': url.port,
+        'path': url.path,
+        'fields': fields
+    }
+    return result
+
 if __name__ == '__main__':
     # test = TestDubbo()
     # test.setUp()
     # test.test_performance()
     unittest.main()
+    # print(parse_url('dubbo%3A%2F%2F192.168.33.171%3A12346%2Fcom.gjzq.qsvr.api.quote.QuoteQueryService%3Fanyhost%3Dtrue%26application%3DYspServiceProvider%26deprecated%3Dfalse%26dubbo%3D2.0.2%26dynamic%3Dtrue%26generic%3Dfalse%26interface%3Dcom.gjzq.qsvr.api.quote.QuoteQueryService%26methods%3DqueryFuturesQuote%2CqueryShQuote%2CquerySzQuote%2CqueryOptionQuote%26pid%3D56776%26release%3D2.7.7%26revision%3D1.0.0%26side%3Dprovider%26timeout%3D2000%26timestamp%3D1600839509144%26version%3D1.0.0'))
