@@ -393,8 +393,11 @@ class Connection(object):
         :return:
         """
         self.last_active = time.time()
+        try:
+            data = list(bytearray(self.__sock.recv(self.read_length - len(self.read_buffer))))
+        except ConnectionResetError as con_err:
+            logger.exception(con_err)
 
-        data = list(bytearray(self.__sock.recv(self.read_length - len(self.read_buffer))))
         # 断开连接
         if not data:
             callback([], self, None, None)
